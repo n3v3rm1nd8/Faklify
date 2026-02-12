@@ -1,0 +1,5 @@
+app/src/main/resources/lib/
+dist/
+*.msi
+build/
+.gradle/

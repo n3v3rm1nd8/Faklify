@@ -1,0 +1,97 @@
+plugins {
+    id 'application'
+    id 'java'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo1.maven.org/maven2/' }
+}
+
+javafx {
+    version = '21'
+    modules = [ 'javafx.controls', 'javafx.media' ]
+}
+
+dependencies {
+    // Forzamos a vlcj a NO traer sus propias versiones de JNA
+    implementation('uk.co.caprica:vlcj:4.8.2') {
+        exclude group: 'net.java.dev.jna'
+    }
+    // Ponemos la versión normal que es más permisiva
+    implementation 'net.java.dev.jna:jna:5.13.0'
+    implementation 'net.java.dev.jna:jna-platform:5.13.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.15.2'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.15.2'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2'
+    implementation 'com.squareup.okhttp3:okhttp:4.11.0'
+    implementation 'commons-io:commons-io:2.13.0'
+    implementation 'org.apache.commons:commons-exec:1.3'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'org.apache.commons:commons-compress:1.23.0'
+    implementation 'org.slf4j:slf4j-api:2.0.7'
+    implementation 'ch.qos.logback:logback-classic:1.4.8'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+}
+
+run {
+    jvmArgs = [
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED",
+        "-Djna.nosys=true",
+        "-Djna.nounpack=true",
+        "-Djna.library.path=${projectDir}/app/vlc_runtime",
+        "-Djna.boot.library.path=${projectDir}/app/vlc_runtime"
+    ]
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+// DEFINICIÓN ÚNICA DE LA APLICACIÓN - MODO AUTÓNOMO
+application {
+    mainClass = 'com.faklify.Faklify'
+    
+    applicationDefaultJvmArgs = [
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED",
+        "-Djna.nosys=true", 
+        "-Djna.nounpack=true",
+        // Estas son para el EXE final
+        "-Djna.library.path=./vlc_runtime",
+        "-Djna.boot.library.path=./vlc_runtime",
+        "-Dfile.encoding=UTF-8",
+        "-Dprism.order=sw"
+    ]
+}
+
+run {
+    jvmArgs = application.applicationDefaultJvmArgs.collect { arg ->
+        arg.replace("./vlc_runtime", "${projectDir}/vlc_runtime")
+    }
+    // Añadimos esto para que Java confíe en las DLLs externas
+    System.setProperty("java.library.path", "${projectDir}/vlc_runtime")
+}
+
+// Tarea para copiar VLC a la carpeta donde jpackage buscará
+//tasks.register('copyVlcToApp', Copy) {
+//    description = "Copia las librerías de VLC para el empaquetado"
+//    from 'C:/Program Files/VideoLAN/VLC'
+//    include 'libvlc.dll', 'libvlccore.dll', 'plugins/**', 'lua/**'
+//    // IMPORTANTE: installDist crea una carpeta con el nombre del proyecto
+//   // Usamos esta ruta para que jpackage encuentre vlc_runtime en el root
+//    into layout.buildDirectory.dir("install/${project.name}/vlc_runtime")
+//}
+
+// Asegurar el orden de las tareas
+//installDist.dependsOn copyVlcToApp
+
+tasks.register('copyDependencies', Copy) {
+    from configurations.runtimeClasspath
+    into layout.buildDirectory.dir("dependencies")
+}
