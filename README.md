@@ -32,7 +32,7 @@ If you prefer to run or build the project yourself, follow these steps to prepar
 
 3. **Placement & Extraction**:
 
-- Move the 'lib.rar' to: app\src\main\resources
+- Move the 'lib.rar' to: app\src\main\resources (create directory if not exist)
 
 - Extract its contents directly into that folder.
 
