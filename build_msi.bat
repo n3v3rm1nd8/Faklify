@@ -24,7 +24,7 @@ xcopy /E /I /Y "app\vlc_runtime" "empaquetado_temp\vlc_runtime"
 echo 4. Generando MSI Fusionado...
 if not exist "dist" mkdir "dist"
 
-:: Buscamos tu JAR (probablemente app.jar o pruebasYTDLP.jar)
+:: Buscamos el JAR
 for %%f in ("empaquetado_temp\lib\*.jar") do set "JAR_NAME=%%~nxf"
 
 "C:\Program Files\Java\jdk-21\bin\jpackage.exe" ^
